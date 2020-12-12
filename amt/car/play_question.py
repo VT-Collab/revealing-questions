@@ -15,7 +15,7 @@ def play_question(Q, speed=10.0):
     done2 = 1.0
     last_target1 = False
     last_target2 = False
-    # input("Press Enter to continue...")
+    input("Press Enter to continue...")
     start_time = time.time()
     curr_time = time.time() - start_time
     stop_sequence = False

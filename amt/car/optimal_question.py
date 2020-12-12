@@ -14,7 +14,7 @@ true_high=np.asarray([4.0, 4, 1.0, 1, 2, 0.5])
 
 
 # human's prior (i.e., what the human expects phi to be coming in)
-bh_mean = [3.5, 0.5, 0.5, 0.1, 0.1, 0.1]
+bh_mean = [3.5, 0.0, 0.5, 0.1, 0.1, 0.1]
 bh_var = [0.05, 0.05, 0.05, 0.02, 0.02, 0.02]
 prior = multivariate_normal(mean=bh_mean, cov=np.diag(bh_var))
 
@@ -22,8 +22,8 @@ prior = multivariate_normal(mean=bh_mean, cov=np.diag(bh_var))
 
 # what the robot actually knows and does not know (phi)
 # phi_true = np.asarray([4.0, 2.0, 1.5, 0.0, 1.0, 0.0])
-phi_true = np.asarray([3.0, 2.0, 1.5, 0.75, 1.0, 0.0])
-# phi_true = np.asarray([3.0, 1.5, 0.1, 1.0, 1.0, 1.0])
+# phi_true = np.asarray([3.0, 2.0, 1.5, 0.75, 1.0, 0.0])
+phi_true = np.asarray([3.0, 1.5, 0.1, 1.0, 1.0, 1.0])
 
 
 

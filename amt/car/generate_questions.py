@@ -14,7 +14,7 @@ def get_features(xi):
     for idx in range(len(xi)):
         waypoint = xi[idx]
         lane += abs(waypoint[1])
-        avoid = min(avoid, np.sqrt((2 - waypoint[0])**2 + (-0.4 - waypoint[1])**2))
+        avoid = min(avoid, np.sqrt((2 - waypoint[0])**2 + (-0.5 - waypoint[1])**2))
     return np.asarray([distance, lane, avoid])
 
 

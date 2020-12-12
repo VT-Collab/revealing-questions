@@ -29,13 +29,13 @@ class SimpleEnv():
         p.resetBasePositionAndOrientation(obj.body_id, [4, self.offset1, 0.1], [0, 0, 0, 1])
         obj = YCBObject('003_cracker_box')
         obj.load()
-        p.resetBasePositionAndOrientation(obj.body_id, [2, -0.4 + self.offset1, 0.1], [0, 0, 0, 1])
+        p.resetBasePositionAndOrientation(obj.body_id, [2, -0.5 + self.offset1, 0.1], [0, 0, 0, 1])
         obj = YCBObject('004_sugar_box')
         obj.load()
-        p.resetBasePositionAndOrientation(obj.body_id, [1.75, -0.35 + self.offset1, 0.1], [0, 0, 0, 1])
+        p.resetBasePositionAndOrientation(obj.body_id, [1.75, -0.45 + self.offset1, 0.1], [0, 0, 0, 1])
         obj = YCBObject('002_master_chef_can')
         obj.load()
-        p.resetBasePositionAndOrientation(obj.body_id, [1.85, -0.42 + self.offset1, 0.1], [0, 0, 0, 1])
+        p.resetBasePositionAndOrientation(obj.body_id, [1.85, -0.52 + self.offset1, 0.1], [0, 0, 0, 1])
 
         # example YCB object
         obj = YCBObject('024_bowl')
@@ -43,13 +43,13 @@ class SimpleEnv():
         p.resetBasePositionAndOrientation(obj.body_id, [4, self.offset2, 0.1], [0, 0, 0, 1])
         obj = YCBObject('003_cracker_box')
         obj.load()
-        p.resetBasePositionAndOrientation(obj.body_id, [2, -0.4 + self.offset2, 0.1], [0, 0, 0, 1])
+        p.resetBasePositionAndOrientation(obj.body_id, [2, -0.5 + self.offset2, 0.1], [0, 0, 0, 1])
         obj = YCBObject('004_sugar_box')
         obj.load()
-        p.resetBasePositionAndOrientation(obj.body_id, [1.75, -0.35 + self.offset2, 0.1], [0, 0, 0, 1])
+        p.resetBasePositionAndOrientation(obj.body_id, [1.75, -0.45 + self.offset2, 0.1], [0, 0, 0, 1])
         obj = YCBObject('002_master_chef_can')
         obj.load()
-        p.resetBasePositionAndOrientation(obj.body_id, [1.85, -0.42 + self.offset2, 0.1], [0, 0, 0, 1])
+        p.resetBasePositionAndOrientation(obj.body_id, [1.85, -0.52 + self.offset2, 0.1], [0, 0, 0, 1])
 
         # load some swarm robots
         self.car1 = Racecar([0, self.offset1, 0])
