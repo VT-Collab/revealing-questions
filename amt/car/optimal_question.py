@@ -8,20 +8,22 @@ import sys
 # enter the range of phi ---
 # this is used for normalization (since some features have different
 # ranges than others)
-true_low=np.asarray([1.0, 0.0, 0.8, 0.0, 0.0, 0.0])
-true_high=np.asarray([4.0, 4, 5, 1, 2, 2])
+true_low=np.asarray([1.5, 0.0, 0.0, 0.0, 0.0, 0.0])
+true_high=np.asarray([4.0, 4, 1.0, 1, 2, 0.5])
 
 
 
 # human's prior (i.e., what the human expects phi to be coming in)
-bh_mean = [3, 1, 1, 0.5, 1.0, 1.0]
+bh_mean = [3.5, 0.5, 0.5, 0.1, 0.1, 0.1]
 bh_var = [0.05, 0.05, 0.05, 0.02, 0.02, 0.02]
 prior = multivariate_normal(mean=bh_mean, cov=np.diag(bh_var))
 
 
 
 # what the robot actually knows and does not know (phi)
-phi_true = np.asarray([3.0, 0.0, 2.0, 1.0, 0.0, 2.0])
+# phi_true = np.asarray([4.0, 2.0, 1.5, 0.0, 1.0, 0.0])
+phi_true = np.asarray([3.0, 2.0, 1.5, 0.75, 1.0, 0.0])
+# phi_true = np.asarray([3.0, 1.5, 0.1, 1.0, 1.0, 1.0])
 
 
 
@@ -99,8 +101,9 @@ def main():
     #   2. pick questions that convey aspects of phi one at a time (one-turn)
     #   3. pick questions that focus on the part of phi the human is most confused about (one-most)
     type = sys.argv[1]
+    number = sys.argv[2]
     filename = "data/questions.pkl"
-    savename = "data/optimal_questions-" + type + ".pkl"
+    savename = "data/optimal_questions-" + type + "-number" + number + ".pkl"
     dataset = pickle.load(open(filename, "rb"))
 
     # sample from prior to make Omega

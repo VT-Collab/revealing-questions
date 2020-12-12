@@ -6,7 +6,7 @@ import sys
 
 
 # play a trajectory over T seconds
-def play_question(Q, speed=3.0):
+def play_question(Q, speed=10.0):
     env = SimpleEnv()
     state = env.reset()
     target1 = Q[0][0]
@@ -18,6 +18,7 @@ def play_question(Q, speed=3.0):
     # input("Press Enter to continue...")
     start_time = time.time()
     curr_time = time.time() - start_time
+    stop_sequence = False
     while True:
         position1 = np.asarray([state[0]['position'][0], state[0]['position'][1]])
         velocity1 = np.asarray([state[0]['velocity'][0], state[0]['velocity'][1]])
@@ -43,8 +44,11 @@ def play_question(Q, speed=3.0):
             target2 = Q[1][1]
             last_target2 = True
         if done1 + done2 < 0.1:
-            break
-        curr_time = time.time() - start_time
+            if stop_sequence is False:
+                stop_time = time.time()
+                stop_sequence = True
+            if time.time() - stop_time > 2.0:
+                break
     env.close()
 
 
@@ -55,10 +59,11 @@ def play_question(Q, speed=3.0):
 def main():
 
     type = sys.argv[1]
-    filename = "data/optimal_questions-" + type + ".pkl"
+    number = sys.argv[2]
+    filename = "data/optimal_questions-" + type + "-number" + number + ".pkl"
     Q_sequence = pickle.load(open(filename, "rb"))
     for Q in Q_sequence:
-        play_question(Q, 5.0)
+        play_question(Q)
 
 
 if __name__ == "__main__":

@@ -10,11 +10,11 @@ import pickle
 # object locations are hard coded
 def get_features(xi):
     distance = xi[-1][0]
-    lane, avoid = 0, 0
+    lane, avoid = 0, 1.0
     for idx in range(len(xi)):
         waypoint = xi[idx]
         lane += abs(waypoint[1])
-        avoid += np.sqrt((2 - waypoint[0])**2 + (-0.4 - waypoint[1])**2)
+        avoid = min(avoid, np.sqrt((2 - waypoint[0])**2 + (-0.4 - waypoint[1])**2))
     return np.asarray([distance, lane, avoid])
 
 
@@ -48,7 +48,7 @@ def main():
             x_pos = 0.0
             for waypoint in range(n_waypoints):
                 # sample position
-                step = [np.random.uniform(low=0.5, high=2.0), np.random.normal(0, 1)]
+                step = [np.random.uniform(low=0.75, high=2.0), np.random.uniform(low=-2.0, high=0.0)]
                 x_pos += step[0]
                 xi[waypoint,:] = [x_pos, step[1]]
                 # impose workspace limits

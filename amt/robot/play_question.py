@@ -37,7 +37,7 @@ def play_question(Q, T=3.0):
     traj2 = Trajectory(Q[1], T)
     env = SimpleEnv()
     state = env.reset()
-    # input("Press Enter to continue...")
+    input("Press Enter to continue...")
     start_time = time.time()
     curr_time = time.time() - start_time
     while curr_time < T + 2.0:
@@ -58,7 +58,8 @@ def play_question(Q, T=3.0):
 def main():
 
     type = sys.argv[1]
-    filename = "data/optimal_questions-" + type + ".pkl"
+    number = sys.argv[2]
+    filename = "data/optimal_questions-" + type + "-number" + number + ".pkl"
     Q_sequence = pickle.load(open(filename, "rb"))
     for Q in Q_sequence:
         play_question(Q)

@@ -24,6 +24,9 @@ class SimpleEnv():
         self.offset2 = +2.0
 
         # example YCB object
+        obj = YCBObject('024_bowl')
+        obj.load()
+        p.resetBasePositionAndOrientation(obj.body_id, [4, self.offset1, 0.1], [0, 0, 0, 1])
         obj = YCBObject('003_cracker_box')
         obj.load()
         p.resetBasePositionAndOrientation(obj.body_id, [2, -0.4 + self.offset1, 0.1], [0, 0, 0, 1])
@@ -35,6 +38,9 @@ class SimpleEnv():
         p.resetBasePositionAndOrientation(obj.body_id, [1.85, -0.42 + self.offset1, 0.1], [0, 0, 0, 1])
 
         # example YCB object
+        obj = YCBObject('024_bowl')
+        obj.load()
+        p.resetBasePositionAndOrientation(obj.body_id, [4, self.offset2, 0.1], [0, 0, 0, 1])
         obj = YCBObject('003_cracker_box')
         obj.load()
         p.resetBasePositionAndOrientation(obj.body_id, [2, -0.4 + self.offset2, 0.1], [0, 0, 0, 1])
@@ -91,7 +97,7 @@ class SimpleEnv():
     def _set_camera(self):
         self.camera_width = 256
         self.camera_height = 256
-        p.resetDebugVisualizerCamera(cameraDistance=2.0, cameraYaw=-90, cameraPitch=-60,
+        p.resetDebugVisualizerCamera(cameraDistance=3.0, cameraYaw=-90, cameraPitch=-60,
                                      cameraTargetPosition=[0.75, 0.0, 0.0])
         self.view_matrix = p.computeViewMatrixFromYawPitchRoll(cameraTargetPosition=[1.0, 0, 0],
                                                                distance=1.0,

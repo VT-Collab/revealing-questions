@@ -14,7 +14,7 @@ def get_features(xi):
         waypoint = xi[idx]
         height += abs(0.1 - waypoint[2])
         dist2goal += np.sqrt((0.7 - waypoint[0])**2 + (-0.2 - waypoint[1])**2)
-        dist2obs += np.sqrt((0.5 - waypoint[0])**2 + (0.2 - waypoint[1])**2)
+        dist2obs += np.sqrt((0.5 - waypoint[0])**2 + (0.2 - waypoint[1])**2 + (0.1 - waypoint[2])**2)
     return np.asarray([height, dist2goal, dist2obs])
 
 
