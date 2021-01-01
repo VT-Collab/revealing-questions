@@ -8,22 +8,31 @@ import sys
 # enter the range of phi ---
 # this is used for normalization (since some features have different
 # ranges than others)
-true_low=np.asarray([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-true_high=np.asarray([0.6, 0.8, 0.9, 0.3, 0.4, 0.4])
+# true_low=np.asarray([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+true_low=np.asarray([0., 0.01, 0., 0., 0., 0.])
+# true_high=np.asarray([0.6, 0.8, 0.9, 0.3, 0.4, 0.4])
+# true_high=np.asarray([0.6, 1.4, 1.5, 0.3, 0.5, 0.6])
+true_high=np.asarray([0.6, 0.92, 0.6, 0.3, 0.46, 0.3])
 
 
 
 # human's prior (i.e., what the human expects phi to be coming in)
-bh_mean = [0.0, 0.0, 0.5, 0.05, 0.05, 0.05]
+bh_mean = [0.05, 0.05, 0.05, 0.05, 0.05, 0.05]
 bh_var = [0.02, 0.02, 0.02, 0.005, 0.005, 0.005]
 prior = multivariate_normal(mean=bh_mean, cov=np.diag(bh_var))
 
 
 
 # what the robot actually knows and does not know (phi)
-phi_true = np.asarray([0.3, 0.3, 0.4, 0.1, 0.2, 0.3])
+# phi_true = np.asarray([0.3, 0.3, 0.4, 0.1, 0.2, 0.3])
 
+# Phi for perfect demo
+# phi_true = np.asarray([0., 0., 0.5, 0., 0., 0.])
 
+# Phi with best questions
+# phi_true = np.asarray([0.4, 0.4, 0.1, 0.4, 0.4, 0.4])
+
+phi_true = np.asarray([0., 0., 0., 0.02, 0.02, 0.4])
 
 # hyperparameters
 Sigma = np.diag([0.001, 0.001, 0.001, 0.001, 0.001, 0.001])
@@ -92,14 +101,16 @@ def get_question(dataset, Omega, phi):
 
 
 
-def main():
+def main(method, i):
 
     # there the 3 ways to choose the questions:
     #   1. pick the question that conveys every aspect of phi at once (all)
     #   2. pick questions that convey aspects of phi one at a time (one-turn)
     #   3. pick questions that focus on the part of phi the human is most confused about (one-most)
-    type = sys.argv[1]
-    number = sys.argv[2]
+    # type = sys.argv[1]
+    # number = sys.argv[2]
+    type = method
+    number = str(i)
     filename = "data/questions.pkl"
     savename = "data/optimal_questions-" + type + "-number" + number + ".pkl"
     dataset = pickle.load(open(filename, "rb"))
@@ -157,4 +168,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # methods = ["all", "one-most", "one-turn"]
+    methods = ["one-turn"]
+    for method in methods:
+        for i in range(1,2):
+            main(method, i)

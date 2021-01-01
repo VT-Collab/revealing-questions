@@ -12,9 +12,13 @@ def get_features(xi):
     height, dist2goal, dist2obs = 0, 0, 0
     for idx in range(1, len(xi)):
         waypoint = xi[idx]
-        height += abs(0.1 - waypoint[2])
-        dist2goal += np.sqrt((0.7 - waypoint[0])**2 + (-0.2 - waypoint[1])**2)
-        dist2obs += np.sqrt((0.5 - waypoint[0])**2 + (0.2 - waypoint[1])**2 + (0.1 - waypoint[2])**2)
+        if idx == 2:
+            height += abs(0.1 - waypoint[2])
+            dist2goal += np.sqrt((0.8 - waypoint[0])**2 + (-0.2 - waypoint[1])**2)
+        if idx == 1:
+            dist2obs += abs(0.1 - waypoint[2])
+        # else:
+            # dist2obs += np.sqrt((0.7 - waypoint[0])**2 + (0.1 - waypoint[1])**2 + (0.1 - waypoint[2])**2)
     return np.asarray([height, dist2goal, dist2obs])
 
 
@@ -31,13 +35,13 @@ def get_feature_vector(Q, n_features=3):
     Q_phi = np.concatenate((Q_phi_mean, Q_phi_std))
     return Q_phi.tolist()
 
-
+# 
 
 def main():
 
     dataset = []
     savename = 'data/questions.pkl'
-    n_waypoints = 2
+    n_waypoints = 3
     n_questions = 1e4
     n_choices = 2
 
@@ -46,10 +50,17 @@ def main():
         for q in range(n_choices):
             xi = np.zeros((n_waypoints, 3))
             # set start position
-            xi[0,:] = np.asarray([0.5545, 0.0, 0.5195])
+            # xi[0,:] = np.asarray([0.5545, 0.0, 0.5195])
+            xi[0,:] = np.asarray([0.3, 0.9, 0.5])
             for waypoint in range(1, n_waypoints):
                 # sample next position (goal position)
-                step = np.random.multivariate_normal([0.5, 0.0, 0.3], np.diag([0.1, 0.1, 0.1]))
+                if waypoint == 1:
+                    h = np.random.normal(0.4,0.2)
+                    step = [0.6, 0.1, h]
+                    # step = [0.5, 0.2, 0.4]
+                else:
+                    step = np.random.multivariate_normal([0.6, 0.1, 0.2], np.diag([0.3, 0.3, 0.2]))
+                    # step = [0.8, -0.2, 0.1]
                 xi[waypoint,:] = step
                 # impose workspace limits
                 if xi[waypoint, 0] < 0.1:
