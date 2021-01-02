@@ -23,24 +23,24 @@ class SimpleEnv():
         p.loadURDF(os.path.join(self.urdfRootPath, "table/table.urdf"), basePosition=[0.5, 0.6, -0.65])
 
         # load obstacle (soccerball)
-        p.loadURDF(os.path.join(self.urdfRootPath, "soccerball.urdf"), basePosition=[0.5, 0.2 - 0.6, 0.1], globalScaling=0.25)
-        p.loadURDF(os.path.join(self.urdfRootPath, "soccerball.urdf"), basePosition=[0.5, 0.2 + 0.6, 0.1], globalScaling=0.25)
+        p.loadURDF(os.path.join(self.urdfRootPath, "soccerball.urdf"), basePosition=[0.6, 0.1 - 0.6, 0.07], globalScaling=0.20)
+        p.loadURDF(os.path.join(self.urdfRootPath, "soccerball.urdf"), basePosition=[0.6, 0.1 + 0.6, 0.07], globalScaling=0.20)
 
         # example YCB object
         obj = YCBObject('024_bowl')
         obj.load()
-        p.resetBasePositionAndOrientation(obj.body_id, [0.7, -0.2 - 0.6, 0], [0, 0, 0, 1])
+        p.resetBasePositionAndOrientation(obj.body_id, [0.8, -0.2 - 0.6, 0], [0, 0, 0, 1])
         # example YCB object
         obj = YCBObject('024_bowl')
         obj.load()
-        p.resetBasePositionAndOrientation(obj.body_id, [0.7, -0.2 + 0.6, 0], [0, 0, 0, 1])
+        p.resetBasePositionAndOrientation(obj.body_id, [0.8, -0.2 + 0.6, 0], [0, 0, 0, 1])
 
 
         # load a panda robot
         self.panda1 = Panda([0, -0.6, 0])
         self.panda2 = Panda([0, 0.6, 0])
 
-    def reset(self, q=[0.0, 0.0, 0.0, -2*np.pi/4, 0.0, np.pi/2, np.pi/4]):
+    def reset(self, q=[0.3, 0.9, 0.5, -2*np.pi/4, 0.0, np.pi/2, np.pi/4]):
         self.panda1.reset(q)
         self.panda2.reset(q)
         return [self.panda1.state, self.panda2.state]
@@ -81,8 +81,8 @@ class SimpleEnv():
     def _set_camera(self):
         self.camera_width = 256
         self.camera_height = 256
-        p.resetDebugVisualizerCamera(cameraDistance=1.1, cameraYaw=90, cameraPitch=-45,
-                                     cameraTargetPosition=[0.8, 0.0, 0.0])
+        p.resetDebugVisualizerCamera(cameraDistance=1.3, cameraYaw=90, cameraPitch=-31.4,
+                                     cameraTargetPosition=[1.1, 0.0, 0.0])
         self.view_matrix = p.computeViewMatrixFromYawPitchRoll(cameraTargetPosition=[0.5, 0, 0],
                                                                distance=1.0,
                                                                yaw=90,
