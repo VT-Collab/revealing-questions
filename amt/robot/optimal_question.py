@@ -1,6 +1,6 @@
 import numpy as np
 import pickle
-from scipy.stats import multivariate_normal
+from scipy.stats import multivariate_normal, uniform
 import sys
 
 
@@ -17,10 +17,9 @@ true_high=np.asarray([0.6, 0.92, 0.6, 0.3, 0.46, 0.3])
 
 
 # human's prior (i.e., what the human expects phi to be coming in)
-bh_mean = [0.05, 0.05, 0.05, 0.05, 0.05, 0.05]
-bh_var = [0.02, 0.02, 0.02, 0.005, 0.005, 0.005]
+bh_mean = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+bh_var = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
 prior = multivariate_normal(mean=bh_mean, cov=np.diag(bh_var))
-
 
 
 # what the robot actually knows and does not know (phi)
@@ -32,7 +31,7 @@ prior = multivariate_normal(mean=bh_mean, cov=np.diag(bh_var))
 # Phi with best questions
 # phi_true = np.asarray([0.4, 0.4, 0.1, 0.4, 0.4, 0.4])
 
-phi_true = np.asarray([0., 0., 0., 0.02, 0.02, 0.4])
+phi_true = np.asarray([0.4, 0.9, 0.0, 0.01, 0.9, 0.5])
 
 # hyperparameters
 Sigma = np.diag([0.001, 0.001, 0.001, 0.001, 0.001, 0.001])
@@ -65,7 +64,8 @@ def metropolis_hastings(Q_set):
             if proposed_phi[idx] < true_low[idx]:
                 proposed_phi[idx] = true_low[idx]
         # compute unnormalized likelihood of phi given prior and questions so far
-        current_prob, proposed_prob = prior.pdf(current_phi), prior.pdf(proposed_phi)
+        # current_prob, proposed_prob = prior.pdf(current_phi), prior.pdf(proposed_phi)
+        current_prob, proposed_prob = 1.0, 1.0
         for Q in Q_set:
             distribution = multivariate_normal(mean=Q[-1], cov=Sigma)
             current_prob *= distribution.pdf(current_phi)
@@ -168,8 +168,8 @@ def main(method, i):
 
 
 if __name__ == "__main__":
-    # methods = ["all", "one-most", "one-turn"]
-    methods = ["one-turn"]
+    methods = ["all", "one-most", "one-turn"]
+    # methods = ["all"]
     for method in methods:
         for i in range(1,2):
             main(method, i)
