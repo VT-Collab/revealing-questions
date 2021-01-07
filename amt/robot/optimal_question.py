@@ -31,7 +31,7 @@ prior = multivariate_normal(mean=bh_mean, cov=np.diag(bh_var))
 # Phi with best questions
 # phi_true = np.asarray([0.4, 0.4, 0.1, 0.4, 0.4, 0.4])
 
-phi_true = np.asarray([0.4, 0.9, 0.0, 0.01, 0.9, 0.5])
+phi_true = np.asarray([0.4, 0., 0.0, 0.4, 0., 0.5])
 
 # hyperparameters
 Sigma = np.diag([0.001, 0.001, 0.001, 0.001, 0.001, 0.001])
