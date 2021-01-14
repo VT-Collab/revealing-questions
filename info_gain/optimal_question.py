@@ -120,6 +120,7 @@ def main():
         # update our list of questions and answers
         questions.append(Q)
         answers.append(q)
+        pickle.dump(questions, open("data/info_gain.pkl", "wb"))
 
         # use metropolis hastings algorithm to update Theta
         Theta = metropolis_hastings(questions, answers, burnin, n_samples)
@@ -131,8 +132,6 @@ def main():
         print("[*] I think the human wants: ", mean_theta)
         print("[*] Here is what I am confident about: ", std_theta)
 
-
-    pickle.dump(questions, open("data/info_gain.pkl", "wb"))
 
 
 
