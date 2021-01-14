@@ -43,11 +43,11 @@ def R(xi, theta):
     return np.dot(theta, f)
 
 # likelihood of human choosing answer q to question Q given reward weights theta
-def boltzmann(q, Q, theta, beta=1.0):
+def boltzmann(q, Q, theta, beta=10.0):
     Z = 0
     for xi in Q:
-        Z += np.exp(R(xi, theta))
-    return np.exp(R(q, theta)) / Z
+        Z += np.exp(beta * R(xi, theta))
+    return np.exp(beta * R(q, theta)) / Z
 
 # uniform prior over the reward weights theta
 # values of theta are constrained to be unit vectors
@@ -94,7 +94,7 @@ def main():
     theta_star = np.asarray(theta_star)
 
     # here are a couple hyperparameters we choose:
-    n_questions = 10
+    n_questions = 50
     n_samples = 100
     burnin = 100
 
@@ -115,6 +115,7 @@ def main():
         # ask this question to the human, get their response
         p_A = boltzmann(Q[0], Q, theta_star)      # likelihood they pick the first option
         p_B = 1 - p_A                             # likelihood they pick the second option
+        print(p_A)
         q = Q[ np.random.choice([0,1], p=[p_A, p_B]) ]
 
         # update our list of questions and answers

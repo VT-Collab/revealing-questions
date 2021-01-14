@@ -8,7 +8,7 @@ def main():
     dataset = []
     savename = 'data/questions.pkl'
     n_waypoints = 3
-    n_questions = 1e3
+    n_questions = 1e2
     n_choices = 2
 
     for question in range(int(n_questions)):
