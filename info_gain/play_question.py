@@ -52,17 +52,17 @@ def play_question(Q, T=3.0):
 
 
 
-# pick what you want to replay:
-# choices are all, one-turn, and one-most
-# will show all trajectories in a row, were each pair of trajectories is a question
 def main():
 
-    type = sys.argv[1]
-    number = sys.argv[2]
-    filename = "data/optimal_questions-" + type + "-number" + number + ".pkl"
-    Q_sequence = pickle.load(open(filename, "rb"))
-    for Q in Q_sequence:
-        play_question(Q)
+    questions = pickle.load(open("data/info_gain-questions.pkl", "rb"))
+    answers = pickle.load(open("data/info_gain-answers.pkl", "rb"))
+    for idx in range(len(questions)):
+        if np.linalg.norm(answers[idx]- questions[idx][0]) < 1e-3:
+            print("[*] the user answered with the one on the RIGHT\n")
+        if np.linalg.norm(answers[idx]- questions[idx][1]) < 1e-3:
+            print("[*] the user answered with the one on the LEFT\n")
+        play_question(questions[idx])
+        print("\n\n\n\n\n")
 
 
 

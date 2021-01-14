@@ -89,7 +89,7 @@ def optimal_question(questionset, Theta):
 def main():
 
     # here is what the human really thinks:
-    theta_star = [0, 1, 0]
+    theta_star = [1, 0, 0]
     theta_star = np.asarray(theta_star)
 
     # here are a couple hyperparameters we choose:
@@ -120,7 +120,8 @@ def main():
         # update our list of questions and answers
         questions.append(Q)
         answers.append(q)
-        pickle.dump(questions, open("data/info_gain.pkl", "wb"))
+        pickle.dump(questions, open("data/info_gain-questions.pkl", "wb"))
+        pickle.dump(answers, open("data/info_gain-answers.pkl", "wb"))
 
         # use metropolis hastings algorithm to update Theta
         Theta = metropolis_hastings(questions, answers, burnin, n_samples)
