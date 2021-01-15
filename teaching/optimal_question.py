@@ -106,10 +106,10 @@ def main():
         questions.append(Qstar)
         pickle.dump(questions, open("data/optimal_questions.pkl", "wb"))
 
-        # use metropolis hastings algorithm to update Theta
+        # use metropolis hastings algorithm to update Phi
         Phi = metropolis_hastings(questions, burnin, n_samples)
 
-        # get the robot's estimate of what theta_star is
+        # get the human's estimate of what phi_star is
         mean_phi = np.mean(Phi, axis=0)
         std_phi = np.std(Phi, axis=0)
         print("[*] The robot really thinks: ", phi_star)

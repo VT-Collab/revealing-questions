@@ -9,7 +9,7 @@ import sys
 class Trajectory(object):
 
     def __init__(self, xi, T):
-        """ create cublic interpolators between waypoints """
+        """ create interpolators between waypoints """
         self.xi = np.asarray(xi)
         self.T = T
         kind = "linear"
@@ -54,8 +54,8 @@ def play_question(Q, T=3.0):
 
 def main():
 
-    questions = pickle.load(open("data/info_gain-questions.pkl", "rb"))
-    answers = pickle.load(open("data/info_gain-answers.pkl", "rb"))
+    questions = pickle.load(open("data/optimal_questions.pkl", "rb"))
+    answers = pickle.load(open("data/human_answers.pkl", "rb"))
     for idx in range(len(questions)):
         if np.linalg.norm(answers[idx]- questions[idx][0]) < 1e-3:
             print("[*] the user answered with the one on the RIGHT\n")

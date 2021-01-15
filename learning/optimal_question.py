@@ -34,7 +34,7 @@ def metropolis_hastings(questions, answers, burnin, theta_length, noise=0.1):
 def features(xi):
     dist2table = abs(0.1 - xi[-1][2])
     dist2goal = np.sqrt((0.8 - xi[-1][0])**2 + (-0.2 - xi[-1][1])**2)
-    dist2obs = abs(0.1 - xi[1][2])
+    dist2obs = abs(0.1 - xi[1][2]) + np.sqrt((0.6 - xi[-1][0])**2 + (0.1 - xi[-1][1])**2 + (0.1 - xi[-1][2])**2)
     return np.asarray([dist2table, dist2goal, dist2obs])
 
 # input trajectory and weights, output reward
@@ -54,8 +54,8 @@ def boltzmann(q, Q, theta, beta=50.0):
 def uniform_prior(M):
     Theta = []
     for idx in range(M):
-        thetap = unit_vector()
-        Theta.append(thetap)
+        theta = unit_vector()
+        Theta.append(theta)
     return np.asarray(Theta)
 
 # compute the info gain for a question using Equation (12)
@@ -110,18 +110,18 @@ def main():
     for idx in range(n_questions):
 
         # get best question
-        Q = optimal_question(questionset, Theta)
+        Qstar = optimal_question(questionset, Theta)
 
         # ask this question to the human, get their response
-        p_A = boltzmann(Q[0], Q, theta_star)      # likelihood they pick the first option
-        p_B = 1 - p_A                             # likelihood they pick the second option
-        q = Q[ np.random.choice([0,1], p=[p_A, p_B]) ]
+        p_A = boltzmann(Qstar[0], Qstar, theta_star)        # likelihood they pick the first option
+        p_B = 1 - p_A                                       # likelihood they pick the second option
+        q = Qstar[ np.random.choice([0,1], p=[p_A, p_B]) ]
 
         # update our list of questions and answers
-        questions.append(Q)
+        questions.append(Qstar)
         answers.append(q)
-        pickle.dump(questions, open("data/info_gain-questions.pkl", "wb"))
-        pickle.dump(answers, open("data/info_gain-answers.pkl", "wb"))
+        pickle.dump(questions, open("data/optimal_questions.pkl", "wb"))
+        pickle.dump(answers, open("data/human_answers.pkl", "wb"))
 
         # use metropolis hastings algorithm to update Theta
         Theta = metropolis_hastings(questions, answers, burnin, n_samples)
