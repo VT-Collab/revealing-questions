@@ -24,8 +24,8 @@ def unit_vector():
 
 # sampling algoritm we use to update Theta
 # https://en.wikipedia.org/wiki/Metropolis%E2%80%93Hastings_algorithm
-def metropolis_hastings_theta(questions, answers, burnin, theta_length, noise=0.1):
-    theta_curr = unit_vector()
+def metropolis_hastings_theta(questions, answers, burnin, theta_length, theta_start, noise=0.1):
+    theta_curr = np.copy(theta_start)
     Theta = []
     while True:
         Theta.append(theta_curr)
@@ -43,8 +43,8 @@ def metropolis_hastings_theta(questions, answers, burnin, theta_length, noise=0.
 
 # sampling algoritm we use to update Phi
 # https://en.wikipedia.org/wiki/Metropolis%E2%80%93Hastings_algorithm
-def metropolis_hastings_phi(questions, burnin, phi_length, noise=0.1):
-    phi_curr = np.random.uniform(low=feat_min, high=feat_max)
+def metropolis_hastings_phi(questions, burnin, phi_length, phi_start, noise=0.1):
+    phi_curr = np.copy(phi_start)
     Phi = []
     while True:
         Phi.append(phi_curr)
@@ -81,7 +81,7 @@ def C(xi, theta):
     return np.dot(theta, f)
 
 # likelihood of human choosing answer q to question Q given reward weights theta
-def boltzmann(q, Q, theta, beta=10.0):
+def boltzmann(q, Q, theta, beta=50.0):
     Z = 0
     for xi in [Q[0], Q[1]]:
         Z += np.exp(-beta * C(xi, theta))
@@ -203,7 +203,10 @@ def main():
         # ask this question to the human, get their response
         p_A = boltzmann(Qstar[0], Qstar, theta_star)        # likelihood they pick the first option
         p_B = 1 - p_A                                       # likelihood they pick the second option
-        q = Qstar[ np.random.choice([0,1], p=[p_A, p_B]) ]
+        if p_A > 0.5:                                       # q = Qstar[ np.random.choice([0,1], p=[p_A, p_B]) ]
+            q = Qstar[0]
+        else:
+            q = Qstar[1]
 
         # update our list of questions and answers
         questions.append(Qstar)
@@ -212,16 +215,17 @@ def main():
         pickle.dump(answers, open("data/human_answers.pkl", "wb"))
 
         # use metropolis hastings algorithm to update Theta
-        Theta = metropolis_hastings_theta(questions, answers, burnin, n_samples)
-        # use metropolis hastings algorithm to update Phi
-        Phi = metropolis_hastings_phi(questions, burnin, n_samples)
+        Theta = metropolis_hastings_theta(questions, answers, burnin, n_samples, theta_star)
 
         # update phi_star based on what the robot actually knows!
-        mean_theta = np.mean(Theta, axis=0)
-        std_theta = np.std(Theta, axis=0)
         phi_star = theta2phi(questionset, Theta)
 
+        # use metropolis hastings algorithm to update Phi
+        Phi = metropolis_hastings_phi(questions, burnin, n_samples, phi_star)
+
         # print off an update that we can read to check the progress
+        mean_theta = np.mean(Theta, axis=0)
+        std_theta = np.std(Theta, axis=0)
         print("[*] The human really wants: ", theta_star)
         print("[*] I think that theta* is: ", mean_theta)
         print("[*] I want to convince the human that phi* is: ", phi_star)
