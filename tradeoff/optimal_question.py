@@ -182,7 +182,7 @@ def main():
     n_questions = 50
     n_samples = 100
     burnin = 500
-    Lambda = 1
+    Lambda = 2
 
     # import the possible questions we have saved
     filename = "data/questions.pkl"
@@ -219,6 +219,10 @@ def main():
 
         # update phi_star based on what the robot actually knows!
         phi_star = theta2phi(questionset, Theta)
+        most_uncertain = np.argmax(phi_star[3:6]) + 3
+        phi_most = np.asarray([phi_star[0], phi_star[1], phi_star[2], 0, 0, 0])
+        phi_most[most_uncertain] = phi_star[most_uncertain]
+        phi_star = np.copy(phi_most)
 
         # use metropolis hastings algorithm to update Phi
         Phi = metropolis_hastings_phi(questions, burnin, n_samples, phi_star)
