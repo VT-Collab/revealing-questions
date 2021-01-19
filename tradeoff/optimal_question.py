@@ -203,9 +203,9 @@ def main():
     n_questions = 20
     n_samples = 100
     burnin = 500
-    Lambda = 0
+    Lambda = 2
     forgetting_factor = 0.75
-    savename = "learning"
+    savename = "teaching"
     results = []
 
     for iteration in range(50):
