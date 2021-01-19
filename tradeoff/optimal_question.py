@@ -24,7 +24,7 @@ def unit_vector():
 
 # sampling algoritm we use to update Theta
 # https://en.wikipedia.org/wiki/Metropolis%E2%80%93Hastings_algorithm
-def metropolis_hastings_theta(questions, answers, burnin, theta_length, theta_start, noise=0.1):
+def metropolis_hastings_theta(questions, answers, burnin, theta_length, theta_start, noise=0.05):
     theta_curr = np.copy(theta_start)
     Theta = []
     while True:
@@ -43,7 +43,7 @@ def metropolis_hastings_theta(questions, answers, burnin, theta_length, theta_st
 
 # sampling algoritm we use to update Phi
 # https://en.wikipedia.org/wiki/Metropolis%E2%80%93Hastings_algorithm
-def metropolis_hastings_phi(questions, burnin, phi_length, phi_start, noise=0.1):
+def metropolis_hastings_phi(questions, burnin, phi_length, phi_start, forgetting_factor=1.0, noise=0.05):
     phi_curr = np.copy(phi_start)
     Phi = []
     while True:
@@ -60,8 +60,9 @@ def metropolis_hastings_phi(questions, burnin, phi_length, phi_start, noise=0.1)
         current_prob, proposed_prob = 1.0, 1.0
         for idx in range(len(questions)):
             Qmodel = gaussian(questions[idx][-1])
-            current_prob *= Qmodel.pdf(phi_curr)
-            proposed_prob *= Qmodel.pdf(phi_prop)
+            question_number = len(questions) - 1 - idx
+            current_prob *= forgetting_factor**question_number * Qmodel.pdf(phi_curr)
+            proposed_prob *= forgetting_factor**question_number * Qmodel.pdf(phi_prop)
         if np.random.random() < proposed_prob / current_prob:
             phi_curr = np.copy(phi_prop)
 
@@ -90,7 +91,7 @@ def boltzmann(q, Q, theta, beta=50.0):
 # likelihood (from the human's perspective) of robot choosing question Q
 # given that the robot is thinking phi
 # the variance Sigma is a hyperparameter we can play with
-def gaussian(mean, cov=np.diag([0.1]*6)):
+def gaussian(mean, cov=np.diag([0.01]*6)):
     return multivariate_normal(mean, cov)
 
 # uniform prior over the reward weights theta
@@ -148,7 +149,6 @@ def optimal_question(questionset, Theta, Phi, phi_star, Lambda):
         if score > score_max:
             score_max = score
             Qopt = np.copy(Q)
-    print(score_max)
     return Qopt
 
 # given the samples Theta, parameterize the robot's belief as phi
@@ -167,32 +167,54 @@ def theta2phi(questionset, Theta):
     features_std = np.std(F, axis=0)
     return np.concatenate((features_mean, features_std))
 
+# metrics for the teaching aspects
+def teaching_metrics(questionset, Theta, Phi):
+    R_phi = theta2phi(questionset, Theta)
+    H_phi = np.mean(Phi, axis=0)
+    error = R_phi[0:3] - H_phi[0:3]             # H knows the expected feature counts
+    idx_R_confused = np.argmax(R_phi[3:6])      # H knows the feature R is most unsure about
+    idx_H_confused = np.argmax(H_phi[3:6])
+    idx_R_confident = np.argmax(-R_phi[3:6])    # H knows the feature R is most sure about
+    idx_H_confident = np.argmax(-H_phi[3:6])
+    return [np.linalg.norm(error), idx_R_confused==idx_H_confused, idx_R_confident==idx_H_confident]
+
+# metrics for the learning aspects
+def learning_metrics(questionset, Theta, theta_star):
+    theta_error = theta_star - np.mean(Theta, axis=0)
+    ideal_features = theta2phi(questionset, [theta_star])[0:3]
+    actual_features = theta2phi(questionset, Theta)[0:3]
+    regret = np.dot(theta_star, actual_features) - np.dot(theta_star, ideal_features)
+    return [np.linalg.norm(theta_error), regret]
+
+
 
 
 def main():
 
-    # here is what the human really thinks:
-    theta_star = [1/np.sqrt(2), 0, -1/np.sqrt(2)]
-    theta_star = np.asarray(theta_star)
-
-    # at the start, the robot knows nothing:
-    phi_star = 0.5 * (feat_min + feat_max)
+    # import the possible questions we have saved
+    filename = "data/questions.pkl"
+    questionset = pickle.load(open(filename, "rb"))
 
     # here are a couple hyperparameters we choose:
     n_questions = 50
     n_samples = 100
     burnin = 500
     Lambda = 2
+    forgetting_factor = 0.75
 
-    # import the possible questions we have saved
-    filename = "data/questions.pkl"
-    questionset = pickle.load(open(filename, "rb"))
+    # here is what the human really thinks:
+    theta_star = [1/np.sqrt(2), 0, -1/np.sqrt(2)]
+    theta_star = np.asarray(theta_star)
 
     # at the start, the robot has a uniform prior over the human's reward
     Theta = uniform_prior_theta(n_samples)
     Phi = uniform_prior_phi(n_samples)
     questions = []
     answers = []
+    metrics = []
+
+    # at the start, the robot knows nothing:
+    phi_star = theta2phi(questionset, Theta)
 
     # main loop --- here is where we find the questions
     for idx in range(n_questions):
@@ -214,26 +236,38 @@ def main():
         pickle.dump(questions, open("data/optimal_questions.pkl", "wb"))
         pickle.dump(answers, open("data/human_answers.pkl", "wb"))
 
+        # use metropolis hastings algorithm to update Phi
+        Phi = metropolis_hastings_phi(questions, burnin, n_samples, phi_star, forgetting_factor)
+
+        # metrics recording teaching
+        metric_teaching = teaching_metrics(questionset, Theta, Phi)
+
         # use metropolis hastings algorithm to update Theta
         Theta = metropolis_hastings_theta(questions, answers, burnin, n_samples, theta_star)
 
-        # update phi_star based on what the robot actually knows!
-        phi_star = theta2phi(questionset, Theta)
-        most_uncertain = np.argmax(phi_star[3:6]) + 3
-        phi_most = np.asarray([phi_star[0], phi_star[1], phi_star[2], 0, 0, 0])
-        phi_most[most_uncertain] = phi_star[most_uncertain]
-        phi_star = np.copy(phi_most)
+        # metrics recording learning
+        metric_learning = learning_metrics(questionset, Theta, theta_star)
 
-        # use metropolis hastings algorithm to update Phi
-        Phi = metropolis_hastings_phi(questions, burnin, n_samples, phi_star)
+        # update phi_star based on what the robot actually knows! (ALL method)
+        phi_star = theta2phi(questionset, Theta)
+        metrics.append(metric_teaching+metric_learning)
 
         # print off an update that we can read to check the progress
-        mean_theta = np.mean(Theta, axis=0)
-        std_theta = np.std(Theta, axis=0)
+        print("[*] teaching metrics: ", metric_teaching)
+        print("[*] learning metrics: ", metric_learning)
         print("[*] The human really wants: ", theta_star)
-        print("[*] I think that theta* is: ", mean_theta)
-        print("[*] I want to convince the human that phi* is: ", phi_star)
+        print("[*] I think that theta* is: ", np.mean(Theta, axis=0))
+
 
 
 if __name__ == "__main__":
     main()
+
+
+
+
+# some code for most / one
+        # most_uncertain = np.argmax(phi_star[3:6]) + 3
+        # phi_most = np.asarray([phi_star[0], phi_star[1], phi_star[2], 0, 0, 0])
+        # phi_most[most_uncertain] = phi_star[most_uncertain]
+        # phi_star = np.copy(phi_most)

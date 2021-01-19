@@ -35,12 +35,15 @@ def main():
         Q = []
         for q in range(n_choices):
             xi = np.zeros((n_waypoints, 3))
+            # first waypoint fixed
             xi[0,:] = np.asarray([0.3, 0.9, 0.5])
             for waypoint in range(1, n_waypoints):
                 if waypoint == 1:
+                    # second waypoint above the ball
                     h = np.random.normal(0.4,0.2)
                     step = [0.6, 0.1, h]
                 else:
+                    # third waypoint random
                     step = np.random.multivariate_normal([0.35, 0.0, 0.4], np.diag([0.2, 0.2, 0.2]))
                 xi[waypoint,:] = step
                 # impose workspace limits
@@ -63,7 +66,6 @@ def main():
 
     pickle.dump(dataset, open(savename, "wb"))
     print("[*] I just saved this many questions: ", len(dataset))
-
 
     F = []
     for Q in dataset:
