@@ -91,7 +91,7 @@ def boltzmann(q, Q, theta, beta=50.0):
 # likelihood (from the human's perspective) of robot choosing question Q
 # given that the robot is thinking phi
 # the variance Sigma is a hyperparameter we can play with
-def gaussian(mean, cov=np.diag([0.01]*6)):
+def gaussian(mean, cov=np.diag([0.1]*6)):
     return multivariate_normal(mean, cov)
 
 # uniform prior over the reward weights theta
@@ -172,11 +172,15 @@ def teaching_metrics(questionset, Theta, Phi):
     R_phi = theta2phi(questionset, Theta)
     H_phi = np.mean(Phi, axis=0)
     error = R_phi[0:3] - H_phi[0:3]             # H knows the expected feature counts
-    idx_R_confused = np.argmax(R_phi[3:6])      # H knows the feature R is most unsure about
-    idx_H_confused = np.argmax(H_phi[3:6])
-    idx_R_confident = np.argmax(-R_phi[3:6])    # H knows the feature R is most sure about
-    idx_H_confident = np.argmax(-H_phi[3:6])
-    return [np.linalg.norm(error), idx_R_confused==idx_H_confused, idx_R_confident==idx_H_confident]
+    total_sure, total_unsure = 0, 0
+    idx_R_unsure = np.argmax(R_phi[3:6])        # H knows the feature R is most unsure about
+    idx_R_sure = np.argmin(R_phi[3:6])          # H knows the feature R is most sure about
+    for phi in Phi:
+        if np.argmax(phi[3:6]) == idx_R_unsure:
+            total_unsure += 1.0
+        if np.argmin(phi[3:6]) == idx_R_sure:
+            total_sure += 1.0
+    return [np.linalg.norm(error), total_unsure / len(Phi), total_sure / len(Phi)]
 
 # metrics for the learning aspects
 def learning_metrics(questionset, Theta, theta_star):
@@ -196,67 +200,71 @@ def main():
     questionset = pickle.load(open(filename, "rb"))
 
     # here are a couple hyperparameters we choose:
-    n_questions = 50
+    n_questions = 20
     n_samples = 100
     burnin = 500
-    Lambda = 2
+    Lambda = 0
     forgetting_factor = 0.75
+    savename = "learning"
+    results = []
 
-    # here is what the human really thinks:
-    theta_star = [1/np.sqrt(2), 0, -1/np.sqrt(2)]
-    theta_star = np.asarray(theta_star)
+    for iteration in range(50):
 
-    # at the start, the robot has a uniform prior over the human's reward
-    Theta = uniform_prior_theta(n_samples)
-    Phi = uniform_prior_phi(n_samples)
-    questions = []
-    answers = []
-    metrics = []
+        # here is what the human really thinks:
+        theta_star = unit_vector()
 
-    # at the start, the robot knows nothing:
-    phi_star = theta2phi(questionset, Theta)
+        # at the start, the robot has a uniform prior over the human's reward
+        Theta = uniform_prior_theta(n_samples)
+        Phi = uniform_prior_phi(n_samples)
+        questions = []
+        answers = []
+        metrics = []
 
-    # main loop --- here is where we find the questions
-    for idx in range(n_questions):
-
-        # get best question
-        Qstar = optimal_question(questionset, Theta, Phi, phi_star, Lambda)
-
-        # ask this question to the human, get their response
-        p_A = boltzmann(Qstar[0], Qstar, theta_star)        # likelihood they pick the first option
-        p_B = 1 - p_A                                       # likelihood they pick the second option
-        if p_A > 0.5:                                       # q = Qstar[ np.random.choice([0,1], p=[p_A, p_B]) ]
-            q = Qstar[0]
-        else:
-            q = Qstar[1]
-
-        # update our list of questions and answers
-        questions.append(Qstar)
-        answers.append(q)
-        pickle.dump(questions, open("data/optimal_questions.pkl", "wb"))
-        pickle.dump(answers, open("data/human_answers.pkl", "wb"))
-
-        # use metropolis hastings algorithm to update Phi
-        Phi = metropolis_hastings_phi(questions, burnin, n_samples, phi_star, forgetting_factor)
-
-        # metrics recording teaching
-        metric_teaching = teaching_metrics(questionset, Theta, Phi)
-
-        # use metropolis hastings algorithm to update Theta
-        Theta = metropolis_hastings_theta(questions, answers, burnin, n_samples, theta_star)
-
-        # metrics recording learning
-        metric_learning = learning_metrics(questionset, Theta, theta_star)
-
-        # update phi_star based on what the robot actually knows! (ALL method)
+        # at the start, the robot knows nothing:
         phi_star = theta2phi(questionset, Theta)
-        metrics.append(metric_teaching+metric_learning)
 
-        # print off an update that we can read to check the progress
-        print("[*] teaching metrics: ", metric_teaching)
-        print("[*] learning metrics: ", metric_learning)
-        print("[*] The human really wants: ", theta_star)
-        print("[*] I think that theta* is: ", np.mean(Theta, axis=0))
+        # main loop --- here is where we find the questions
+        for idx in range(n_questions):
+
+            # get best question
+            Qstar = optimal_question(questionset, Theta, Phi, phi_star, Lambda)
+
+            # ask this question to the human, get their response
+            p_A = boltzmann(Qstar[0], Qstar, theta_star)        # likelihood they pick the first option
+            p_B = 1 - p_A                                       # likelihood they pick the second option
+            q = Qstar[ np.random.choice([0,1], p=[p_A, p_B]) ]
+
+            # update our list of questions and answers
+            questions.append(Qstar)
+            answers.append(q)
+            pickle.dump(questions, open("data/optimal_questions.pkl", "wb"))
+            pickle.dump(answers, open("data/human_answers.pkl", "wb"))
+
+            # use metropolis hastings algorithm to update Phi
+            Phi = metropolis_hastings_phi(questions, burnin, n_samples, phi_star, forgetting_factor)
+
+            # metrics recording teaching
+            metric_teaching = teaching_metrics(questionset, Theta, Phi)
+
+            # use metropolis hastings algorithm to update Theta
+            Theta = metropolis_hastings_theta(questions, answers, burnin, n_samples, theta_star)
+
+            # metrics recording learning
+            metric_learning = learning_metrics(questionset, Theta, theta_star)
+
+            # update phi_star based on what the robot actually knows! (ALL method)
+            phi_star = theta2phi(questionset, Theta)
+            metrics.append(metric_teaching + metric_learning)
+
+            # print off an update that we can read to check the progress
+            print("[*] teaching metrics: ", metric_teaching)
+            print("[*] learning metrics: ", metric_learning)
+            print("[*] The human really wants: ", theta_star)
+            print("[*] I think that theta* is: ", np.mean(Theta, axis=0))
+
+        results.append(metrics)
+        pickle.dump(results, open("data/" + savename + ".pkl", "wb"))
+        print("[***] I just finised iteration: ", iteration)
 
 
 
