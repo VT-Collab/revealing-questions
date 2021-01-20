@@ -82,11 +82,15 @@ def C(xi, theta):
     return np.dot(theta, f)
 
 # likelihood of human choosing answer q to question Q given reward weights theta
-def boltzmann(q, Q, theta, beta=50.0):
-    Z = 0
-    for xi in [Q[0], Q[1]]:
-        Z += np.exp(-beta * C(xi, theta))
-    return np.exp(-beta * C(q, theta)) / Z
+def boltzmann(q, Q, theta, beta=50.0, delta=1.0):
+    if q is "idk":
+        pq1 = 1/(1+np.exp(delta - beta * C(Q[1], theta) + beta * C(Q[0], theta)))
+        pq2 = 1/(1+np.exp(delta - beta * C(Q[0], theta) + beta * C(Q[1], theta)))
+        return (np.exp(2*delta)-1)*pq1*pq2
+    elif q is Q[0]:
+        return 1/(1+np.exp(delta - beta * C(Q[1], theta) + beta * C(Q[0], theta)))
+    elif q is Q[1]:
+        return 1/(1+np.exp(delta - beta * C(Q[0], theta) + beta * C(Q[1], theta)))
 
 # likelihood (from the human's perspective) of robot choosing question Q
 # given that the robot is thinking phi
@@ -115,7 +119,7 @@ def uniform_prior_phi(M):
 # compute the info gain for a question using Equation (12)
 def info_gain(Q, Theta):
     Qinfo, M = 0, len(Theta)
-    for q in [Q[0], Q[1]]:
+    for q in ["idk", Q[0], Q[1]]:
         Z = 0
         for theta in Theta:
             Z += boltzmann(q, Q, theta)
@@ -230,9 +234,10 @@ def main():
             Qstar = optimal_question(questionset, Theta, Phi, phi_star, Lambda)
 
             # ask this question to the human, get their response
+            p_IDK = boltzmann("idk", Qstar, theta_star)         # likelihood they think both are about the same
             p_A = boltzmann(Qstar[0], Qstar, theta_star)        # likelihood they pick the first option
-            p_B = 1 - p_A                                       # likelihood they pick the second option
-            q = Qstar[ np.random.choice([0,1], p=[p_A, p_B]) ]
+            p_B = boltzmann(Qstar[1], Qstar, theta_star)        # likelihood they pick the second option
+            q = np.random.choice(["idk", Qstar[0], Qstar[1]], p=[p_IDK, p_A, p_B])
 
             # update our list of questions and answers
             questions.append(Qstar)
