@@ -207,9 +207,9 @@ def main():
     n_questions = 20
     n_samples = 100
     burnin = 500
-    Lambda = 2
+    Lambda = 0
     forgetting_factor = 0.75
-    savename = "teaching"
+    savename = "learning_idk"
     results = []
 
     for iteration in range(50):
@@ -259,7 +259,7 @@ def main():
 
             # update phi_star based on what the robot actually knows! (ALL method)
             phi_star = theta2phi(questionset, Theta)
-            metrics.append(metric_teaching + metric_learning)
+            metrics.append(metric_teaching + metric_learning + [q is "idk"])
 
             # print off an update that we can read to check the progress
             print("[*] teaching metrics: ", metric_teaching)
