@@ -19,28 +19,25 @@ def get_all_metrics(data):
     mean_sure_perc, std_sure_perc, _ = get_metric(data, 2)
     mean_reward_error, std_reward_error, _ = get_metric(data, 3)
     mean_regret, std_regret, _ = get_metric(data, 4)
-    return mean_feat_error, mean_unsure_perc, mean_sure_perc, mean_reward_error, mean_regret
+    mean_idk, std_idk, _ = get_metric(data, 5)
+    return mean_feat_error, mean_unsure_perc, mean_sure_perc, mean_reward_error, mean_regret, mean_idk
 
 
-filename = "data/learning.pkl"
+filename = "data/learning_idk.pkl"
 data = pickle.load(open(filename, "rb"))
-Lmean_feat_error, Lmean_unsure_perc, Lmean_sure_perc, Lmean_reward_error, Lmean_regret = get_all_metrics(data)
+Lmean_feat_error, Lmean_unsure_perc, Lmean_sure_perc, Lmean_reward_error, Lmean_regret, Lidk = get_all_metrics(data)
 
-filename = "data/teaching.pkl"
+filename = "data/teaching_idk.pkl"
 data = pickle.load(open(filename, "rb"))
-Tmean_feat_error, Tmean_unsure_perc, Tmean_sure_perc, Tmean_reward_error, Tmean_regret = get_all_metrics(data)
+Tmean_feat_error, Tmean_unsure_perc, Tmean_sure_perc, Tmean_reward_error, Tmean_regret, Tidk = get_all_metrics(data)
 
 
 plt.plot(Lmean_feat_error,'o--')
 plt.plot(Tmean_feat_error,'s-')
 plt.show()
 
-plt.plot(Lmean_unsure_perc,'o--')
-plt.plot(Tmean_unsure_perc,'s-')
-plt.show()
-
-plt.plot(Lmean_sure_perc,'o--')
-plt.plot(Tmean_sure_perc,'s-')
+plt.plot(Lmean_unsure_perc, Lmean_sure_perc, 'o')
+plt.plot(Tmean_unsure_perc, Tmean_sure_perc, 's')
 plt.show()
 
 plt.plot(Lmean_reward_error,'o--')
@@ -49,4 +46,8 @@ plt.show()
 
 plt.plot(Lmean_regret,'o--')
 plt.plot(Tmean_regret,'s-')
+plt.show()
+
+plt.plot(Lidk,'o--')
+plt.plot(Tidk,'s-')
 plt.show()

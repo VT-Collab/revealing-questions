@@ -143,17 +143,22 @@ def belief(Q, Phi, phi_star):
 def optimal_question(questionset, Theta, Phi, phi_star, Lambda):
     Qopt, score_max, count = None, 0.0, 0
     for Q in questionset:
-        count += 1
-        perc_complete = count * 100.0 / len(questionset)
-        if not perc_complete % 10.0:
-            print("[*] Percentage complete: ", perc_complete)
+        # count += 1
+        # perc_complete = count * 100.0 / len(questionset)
+        # if not perc_complete % 10.0:
+        #     print("[*] Percentage complete: ", perc_complete)
         Qinfo = info_gain(Q, Theta)
         Qbelief = belief(Q, Phi, phi_star)
-        score = Qinfo + Lambda * Qbelief
+        score = Lambda[0] * Qinfo + Lambda[1] * Qbelief
         if score > score_max:
             score_max = score
             Qopt = np.copy(Q)
     return Qopt
+
+# default scheme with random questions
+def random_question(questionset):
+    idx = np.random.choice(range(len(questionset)))
+    return np.copy(questionset[idx])
 
 # given the samples Theta, parameterize the robot's belief as phi
 def theta2phi(questionset, Theta):
@@ -175,16 +180,17 @@ def theta2phi(questionset, Theta):
 def teaching_metrics(questionset, Theta, Phi):
     R_phi = theta2phi(questionset, Theta)
     H_phi = np.mean(Phi, axis=0)
-    error = R_phi[0:3] - H_phi[0:3]             # H knows the expected feature counts
-    total_sure, total_unsure = 0, 0
-    idx_R_unsure = np.argmax(R_phi[3:6])        # H knows the feature R is most unsure about
-    idx_R_sure = np.argmin(R_phi[3:6])          # H knows the feature R is most sure about
+    error_mean = R_phi[0:3] - H_phi[0:3]             # H knows the expected feature counts
+    error_std = R_phi[3:6] - H_phi[3:6]              # H knows the expected confidence
+    total_unsure, total_sure = 0, 0
+    idx_R_unsure = np.argwhere(R_phi[3:6] == np.amax(R_phi[3:6])).flatten().tolist()      # H knows the feature R is most unsure about
+    idx_R_sure = np.argwhere(R_phi[3:6] == np.amin(R_phi[3:6])).flatten().tolist()        # H knows the feature R is most sure about
     for phi in Phi:
-        if np.argmax(phi[3:6]) == idx_R_unsure:
+        if np.argmax(phi[3:6]) in idx_R_unsure:
             total_unsure += 1.0
-        if np.argmin(phi[3:6]) == idx_R_sure:
+        if np.argmin(phi[3:6]) in idx_R_sure:
             total_sure += 1.0
-    return [np.linalg.norm(error), total_unsure / len(Phi), total_sure / len(Phi)]
+    return [np.linalg.norm(error_mean), np.linalg.norm(error_std), total_unsure / len(Phi), total_sure / len(Phi)] + R_phi.tolist()
 
 # metrics for the learning aspects
 def learning_metrics(questionset, Theta, theta_star):
@@ -199,20 +205,27 @@ def learning_metrics(questionset, Theta, theta_star):
 
 def main():
 
+    # here are the hyperparameters we are varying
+    savename = "random"
+    ask_random_questions = True    # random questions (baseline)
+    # Lambda = [1, 0]                 # info gain (learning)
+    # Lambda = [0, 1]                 # belief_h (teaching)
+    # Lambda = [1, 1]                 # trade-off (version 1)
+    # Lambda = [1, 2]                 # trade-off (version 2)
+
     # import the possible questions we have saved
     filename = "data/questions.pkl"
     questionset = pickle.load(open(filename, "rb"))
 
-    # here are a couple hyperparameters we choose:
+    # here are a couple hyperparameters we leave fixed:
+    forgetting_factor = 0.75
     n_questions = 20
     n_samples = 100
     burnin = 500
-    Lambda = 0
-    forgetting_factor = 0.75
-    savename = "learning_idk"
+    n_iterations = 100
     results = []
 
-    for iteration in range(50):
+    for iteration in range(n_iterations):
 
         # here is what the human really thinks:
         theta_star = unit_vector()
@@ -230,8 +243,12 @@ def main():
         # main loop --- here is where we find the questions
         for idx in range(n_questions):
 
-            # get best question
-            Qstar = optimal_question(questionset, Theta, Phi, phi_star, Lambda)
+            if ask_random_questions is True:
+                # get random question
+                Qstar = random_question(questionset)
+            else:
+                # get best question
+                Qstar = optimal_question(questionset, Theta, Phi, phi_star, Lambda)
 
             # ask this question to the human, get their response
             p_IDK = boltzmann("idk", Qstar, theta_star)         # likelihood they think both are about the same
@@ -242,8 +259,8 @@ def main():
             # update our list of questions and answers
             questions.append(Qstar)
             answers.append(q)
-            pickle.dump(questions, open("data/optimal_questions.pkl", "wb"))
-            pickle.dump(answers, open("data/human_answers.pkl", "wb"))
+            # pickle.dump(questions, open("data/optimal_questions.pkl", "wb"))
+            # pickle.dump(answers, open("data/human_answers.pkl", "wb"))
 
             # use metropolis hastings algorithm to update Phi
             Phi = metropolis_hastings_phi(questions, burnin, n_samples, phi_star, forgetting_factor)
@@ -262,8 +279,6 @@ def main():
             metrics.append(metric_teaching + metric_learning + [q is "idk"])
 
             # print off an update that we can read to check the progress
-            print("[*] teaching metrics: ", metric_teaching)
-            print("[*] learning metrics: ", metric_learning)
             print("[*] The human really wants: ", theta_star)
             print("[*] I think that theta* is: ", np.mean(Theta, axis=0))
 
@@ -275,12 +290,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-# some code for most / one
-        # most_uncertain = np.argmax(phi_star[3:6]) + 3
-        # phi_most = np.asarray([phi_star[0], phi_star[1], phi_star[2], 0, 0, 0])
-        # phi_most[most_uncertain] = phi_star[most_uncertain]
-        # phi_star = np.copy(phi_most)
