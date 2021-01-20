@@ -206,12 +206,12 @@ def learning_metrics(questionset, Theta, theta_star):
 def main():
 
     # here are the hyperparameters we are varying
-    savename = "random"
-    ask_random_questions = True    # random questions (baseline)
+    savename = "tradeoff2"
+    ask_random_questions = False    # random questions (baseline)
     # Lambda = [1, 0]                 # info gain (learning)
     # Lambda = [0, 1]                 # belief_h (teaching)
     # Lambda = [1, 1]                 # trade-off (version 1)
-    # Lambda = [1, 2]                 # trade-off (version 2)
+    Lambda = [1, 2]                 # trade-off (version 2)
 
     # import the possible questions we have saved
     filename = "data/questions.pkl"
