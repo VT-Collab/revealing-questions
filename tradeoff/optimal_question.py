@@ -82,7 +82,7 @@ def C(xi, theta):
     return np.dot(theta, f)
 
 # likelihood of human choosing answer q to question Q given reward weights theta
-def boltzmann(q, Q, theta, beta=50.0, delta=1.0):
+def boltzmann(q, Q, theta, beta=10.0, delta=1.0):
     if q is "idk":
         pq1 = 1/(1+np.exp(delta - beta * C(Q[1], theta) + beta * C(Q[0], theta)))
         pq2 = 1/(1+np.exp(delta - beta * C(Q[0], theta) + beta * C(Q[1], theta)))
@@ -206,7 +206,7 @@ def learning_metrics(questionset, Theta, theta_star):
 def main():
 
     # here are the hyperparameters we are varying
-    savename = "tradeoff2"
+    savename = "tradeoff2_10"
     ask_random_questions = False    # random questions (baseline)
     # Lambda = [1, 0]                 # info gain (learning)
     # Lambda = [0, 1]                 # belief_h (teaching)
