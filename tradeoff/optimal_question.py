@@ -43,9 +43,10 @@ def metropolis_hastings_theta(questions, answers, burnin, theta_length, theta_st
 
 # sampling algoritm we use to update Phi
 # https://en.wikipedia.org/wiki/Metropolis%E2%80%93Hastings_algorithm
-def metropolis_hastings_phi(questions, burnin, phi_length, phi_start, forgetting_factor=1.0, noise=0.05):
+def metropolis_hastings_phi(questions, burnin, phi_length, phi_start, bounded_memory=3, noise=0.05):
     phi_curr = np.copy(phi_start)
     Phi = []
+    last_question = max([0, len(questions) - bounded_memory])
     while True:
         Phi.append(phi_curr)
         if len(Phi) == burnin + phi_length:
@@ -58,11 +59,10 @@ def metropolis_hastings_phi(questions, burnin, phi_length, phi_start, forgetting
             if phi_prop[idx] < feat_min[idx]:
                 phi_prop[idx] = feat_min[idx]
         current_prob, proposed_prob = 1.0, 1.0
-        for idx in range(len(questions)):
+        for idx in range(last_question, len(questions)):
             Qmodel = gaussian(questions[idx][-1])
-            question_number = len(questions) - 1 - idx
-            current_prob *= forgetting_factor**question_number * Qmodel.pdf(phi_curr)
-            proposed_prob *= forgetting_factor**question_number * Qmodel.pdf(phi_prop)
+            current_prob *= Qmodel.pdf(phi_curr)
+            proposed_prob *= Qmodel.pdf(phi_prop)
         if np.random.random() < proposed_prob / current_prob:
             phi_curr = np.copy(phi_prop)
 
@@ -82,7 +82,7 @@ def C(xi, theta):
     return np.dot(theta, f)
 
 # likelihood of human choosing answer q to question Q given reward weights theta
-def boltzmann(q, Q, theta, beta=10.0, delta=1.0):
+def boltzmann(q, Q, theta, beta=50.0, delta=1.0):
     if q is "idk":
         pq1 = 1/(1+np.exp(delta - beta * C(Q[1], theta) + beta * C(Q[0], theta)))
         pq2 = 1/(1+np.exp(delta - beta * C(Q[0], theta) + beta * C(Q[1], theta)))
@@ -206,11 +206,11 @@ def learning_metrics(questionset, Theta, theta_star):
 def main():
 
     # here are the hyperparameters we are varying
-    savename = "tradeoff2_10"
-    ask_random_questions = False    # random questions (baseline)
-    # Lambda = [1, 0]                 # info gain (learning)
-    # Lambda = [0, 1]                 # belief_h (teaching)
-    # Lambda = [1, 1]                 # trade-off (version 1)
+    savename = "random"
+    ask_random_questions = True    # random questions (baseline)
+    Lambda = [1, 0]                 # info gain (learning)
+    Lambda = [0, 1]                 # belief_h (teaching)
+    Lambda = [1, 1]                 # trade-off (version 1)
     Lambda = [1, 2]                 # trade-off (version 2)
 
     # import the possible questions we have saved
