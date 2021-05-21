@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.stats import multivariate_normal, uniform
+from scipy.stats import multivariate_normal
 import pickle
 
 
@@ -11,15 +11,13 @@ feat_max = [1.0, 1.0, 1.0, 0.5, 0.5, 0.5]
 feat_min = np.asarray(feat_min)
 feat_max = np.asarray(feat_max)
 
-
-
 # generate a randomly sampled unit vector in 3D
 def unit_vector():
-    angle1 = np.random.uniform(0,np.pi*2)
-    angle2 = np.arccos( np.random.uniform(-1,1) )
-    x = np.sin( angle2) * np.cos( angle1 )
-    y = np.sin( angle2) * np.sin( angle1 )
-    z = np.cos( angle2)
+    angle1 = np.random.uniform(0, np.pi*2)
+    angle2 = np.arccos(np.random.uniform(-1, 1))
+    x = np.sin(angle2) * np.cos(angle1)
+    y = np.sin(angle2) * np.sin(angle1)
+    z = np.cos(angle2)
     return np.asarray([x, y, z])
 
 # sampling algoritm we use to update Theta
@@ -71,7 +69,7 @@ def features(xi):
     dist2table = abs(0.1 - xi[-1][2]) / 0.6
     dist2goal = np.sqrt((0.8 - xi[-1][0])**2 + (-0.2 - xi[-1][1])**2) / np.sqrt(0.7**2 + 0.6**2)
     dist2obs_midpoint = abs(0.1 - xi[1][2]) / 0.6
-    dist2obs_final = np.sqrt((0.6 - xi[-1][0])**2 + (0.1 - xi[-1][1])**2 + (0.1 - xi[-1][2])**2)  / np.sqrt(0.5**2 + 0.5**2 + 0.6**2)
+    dist2obs_final = np.sqrt((0.6 - xi[-1][0])**2 + (0.1 - xi[-1][1])**2 + (0.1 - xi[-1][2])**2) / np.sqrt(0.5**2 + 0.5**2 + 0.6**2)
     dist2obs = 0.5 * dist2obs_midpoint + 0.5 * dist2obs_final
     feature_vector = np.asarray([dist2table, dist2goal, dist2obs])
     return feature_vector
@@ -83,7 +81,7 @@ def C(xi, theta):
 
 # likelihood of human choosing answer q to question Q given reward weights theta
 def boltzmann(q, Q, theta, beta=50.0, delta=1.0):
-    if q is "idk":
+    if q == "idk":
         pq1 = 1/(1+np.exp(delta - beta * C(Q[1], theta) + beta * C(Q[0], theta)))
         pq2 = 1/(1+np.exp(delta - beta * C(Q[0], theta) + beta * C(Q[1], theta)))
         return (np.exp(2*delta)-1)*pq1*pq2
@@ -200,25 +198,21 @@ def learning_metrics(questionset, Theta, theta_star):
     regret = np.dot(theta_star, actual_features) - np.dot(theta_star, ideal_features)
     return [np.linalg.norm(theta_error), regret]
 
-
-
-
 def main():
 
     # here are the hyperparameters we are varying
-    savename = "random"
+    savename = "t05"
     ask_random_questions = True    # random questions (baseline)
-    Lambda = [1, 0]                 # info gain (learning)
-    Lambda = [0, 1]                 # belief_h (teaching)
-    Lambda = [1, 1]                 # trade-off (version 1)
-    Lambda = [1, 2]                 # trade-off (version 2)
+    # Lambda = [1, 0]                 # info gain (learning)
+    # Lambda = [0, 1]                 # belief_h (teaching)
+    # Lambda = [1, 1]                 # trade-off (version 1)
+    Lambda = [1, 0.5]                 # trade-off (version 2)
 
     # import the possible questions we have saved
     filename = "data/questions.pkl"
     questionset = pickle.load(open(filename, "rb"))
 
     # here are a couple hyperparameters we leave fixed:
-    forgetting_factor = 0.75
     n_questions = 20
     n_samples = 100
     burnin = 500
@@ -263,7 +257,7 @@ def main():
             # pickle.dump(answers, open("data/human_answers.pkl", "wb"))
 
             # use metropolis hastings algorithm to update Phi
-            Phi = metropolis_hastings_phi(questions, burnin, n_samples, phi_star, forgetting_factor)
+            Phi = metropolis_hastings_phi(questions, burnin, n_samples, phi_star)
 
             # metrics recording teaching
             metric_teaching = teaching_metrics(questionset, Theta, Phi)
@@ -276,7 +270,7 @@ def main():
 
             # update phi_star based on what the robot actually knows! (ALL method)
             phi_star = theta2phi(questionset, Theta)
-            metrics.append(metric_teaching + metric_learning + [q is "idk"])
+            metrics.append(metric_teaching + metric_learning + [q == "idk"])
 
             # print off an update that we can read to check the progress
             print("[*] The human really wants: ", theta_star)
@@ -285,7 +279,6 @@ def main():
         results.append(metrics)
         pickle.dump(results, open("data/" + savename + ".pkl", "wb"))
         print("[***] I just finised iteration: ", iteration)
-
 
 
 if __name__ == "__main__":
