@@ -24,19 +24,19 @@ def get_all_metrics(data):
     return mean_feat_error, std_feat_error, mean_regret, std_regret, mean_idk, std_idk
 
 
-filename = "data/random.pkl"
+filename = "data/bm1.pkl"
 data = pickle.load(open(filename, "rb"))
 Rfm, Rfs, Rrm, Rrs, Rim, Ris = get_all_metrics(data)
 
-filename = "data/learning.pkl"
+filename = "data/bm3.pkl"
 data = pickle.load(open(filename, "rb"))
 Lfm, Lfs, Lrm, Lrs, Lim, Lis = get_all_metrics(data)
 
-filename = "data/teaching.pkl"
+filename = "data/bm5.pkl"
 data = pickle.load(open(filename, "rb"))
 Tfm, Tfs, Trm, Trs, Tim, Tis = get_all_metrics(data)
 
-filename = "data/tradeoff2.pkl"
+filename = "data/bm10.pkl"
 data = pickle.load(open(filename, "rb"))
 Ofm, Ofs, Orm, Ors, Oim, Ois = get_all_metrics(data)
 
