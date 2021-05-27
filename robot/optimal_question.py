@@ -41,7 +41,7 @@ def metropolis_hastings_theta(questions, answers, burnin, theta_length, theta_st
 
 # sampling algoritm we use to update Phi
 # https://en.wikipedia.org/wiki/Metropolis%E2%80%93Hastings_algorithm
-def metropolis_hastings_phi(questions, burnin, phi_length, phi_start, bounded_memory=20, noise=0.05):
+def metropolis_hastings_phi(questions, burnin, phi_length, phi_start, bounded_memory=3, noise=0.05):
     phi_curr = np.copy(phi_start)
     Phi = []
     last_question = max([0, len(questions) - bounded_memory])
@@ -201,12 +201,12 @@ def learning_metrics(questionset, Theta, theta_star):
 def main():
 
     # here are the hyperparameters we are varying
-    savename = "bm20"
+    savename = "t1000"
     ask_random_questions = False    # random questions (baseline)
     # Lambda = [1, 0]                 # info gain (learning)
     # Lambda = [0, 1]                 # belief_h (teaching)
     # Lambda = [1, 1]                 # trade-off (version 1)
-    Lambda = [1, 2.0]                 # trade-off (version 2)
+    Lambda = [1, 1000.0]                 # trade-off (version 2)
 
     # import the possible questions we have saved
     filename = "data/questions.pkl"
